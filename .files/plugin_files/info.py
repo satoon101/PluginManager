@@ -1,4 +1,4 @@
-# ../$plugin_name/info.py
+# ../{plugin_name}/info.py
 
 """Provides/stores information about the plugin."""
 

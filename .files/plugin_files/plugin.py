@@ -1,4 +1,4 @@
-# ../$plugin_name/$plugin_name.py
+# ../{plugin_name}/{plugin_name}.py
 
 """."""
 
