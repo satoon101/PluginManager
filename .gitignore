@@ -1,3 +1,6 @@
+# All sub-directories
+/*/
+
 # All __pycache__ directories
 __pycache__
 

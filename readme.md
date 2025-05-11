@@ -87,12 +87,6 @@ The following are the settings
     * Defaults:
         * Windows: **C:\Servers**
         * Linux: **/media/Servers**
-* STEAM_DIRECTORIES
-    * used by **sp_linker** to know where your games are located.
-    * If there are multiple base directories, separate each with a semi-colon (;).
-    * Defaults:
-        * Windows: **C:\Program Files\Steam**
-        * Linux: **/media/Steam**
 * RELEASE_DIRECTORY
     * used by **plugin_releaser** to know where to copy your plugin releases to.
     * Defaults:
@@ -127,7 +121,7 @@ The required packages for this toolset include:
 ## Linking Source.Python
 Once you have finished installing the prerequisites, the next item on the list is to link Source.Python's repository to your servers and games.
 
-As long as you have correctly set your config.ini SERVER_DIRECTORIES, STEAM_DIRECTORIES, SOURCE_PYTHON_DIRECTORY, and PYTHON_EXECUTABLE values, simply execute the **sp_linker** script and select the server or game you wish to link (or ALL for all servers and games).
+As long as you have correctly set your config.ini SERVER_DIRECTORIES, SOURCE_PYTHON_DIRECTORY, and PYTHON_EXECUTABLE values, simply execute the **sp_linker** script and select the server or game you wish to link (or ALL for all servers and games).
 
 <br>
 ## Installing plugins
