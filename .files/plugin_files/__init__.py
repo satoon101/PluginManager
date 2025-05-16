@@ -1,3 +1,3 @@
-# ../{plugin_name}/__init__.py
+# ../{{ plugin_name }}/__init__.py
 
 """."""
