@@ -63,7 +63,7 @@ After you have done this, several new files will be created in the main director
 Those files include the config.ini, which holds configuration values you need to set, and a .pylintrc file which can be used for different pylint settings when running the **plugin_checker** script.
 A few platform-specific (.bat for Windows or .sh for Linux) files are also created:
 * plugin_checker
-* plugin_creater
+* plugin_creator
 * plugin_linker
 * plugin_releaser
 * prerequisites
@@ -75,7 +75,7 @@ The next step is to set up your configuration values.  Open the config.ini and s
 The following are the settings
 
 * AUTHOR
-    * used by **plugin_creater** to know what value to put as info.author for the plugin.
+    * used by **plugin_creator** to know what value to put as info.author for the plugin.
 * SOURCE_PYTHON_DIRECTORY
     * used by **plugin_linker** and **sp_linker** to know where the Source.Python repository is located.
     * Defaults:
@@ -134,7 +134,7 @@ If you already have some plugins started, you can copy them into the PluginHelpe
 
 <br>
 ## Creating plugins
-PluginHelpers comes with a script that helps to start the creation of new plugins.  Execute the **plugin_creater** script and answer the questions that follow.
+PluginHelpers comes with a script that helps to start the creation of new plugins.  Execute the **plugin_creator** script and answer the questions that follow.
 
 Once you have answered all the necessary questions, the appropriate directories/files will be created.
 
