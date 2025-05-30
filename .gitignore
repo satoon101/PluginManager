@@ -1,12 +1,6 @@
 # All sub-directories
 /*/
 
-# All __pycache__ directories
-__pycache__
-
-.idea
-.ruff_cache
-
 # Linux temp files
 *~
 
@@ -16,8 +10,12 @@ __pycache__
 # Shell files
 /*.sh
 
-# Base config
-/config.ini
+# Config files
+/*.ini
 
-# Setup files
+# Json files
+/*.json
+
+# Allow base files
 !setup.*
+!.example_files

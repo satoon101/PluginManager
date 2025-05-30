@@ -2,7 +2,7 @@ __pycache__/
 cfg/source-python/
 !cfg/source-python/*/readme.md
 logs/source-python/
-!cfg/source-python/*/readme.md
+!logs/source-python/*/readme.md
 resource/source-python/events/
 !resource/source-python/events/*/readme.md
 resource/source-python/translations/*_server.ini
