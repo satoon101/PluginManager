@@ -32,18 +32,23 @@ if exist %STARTDIR%\config.ini (
     echo Creating config.ini file.  Set values to your specifications before executing any commands.
 )
 
-rem Link the prerequisite file
-if not exist %STARTDIR%\prerequisites.bat (
-    mklink /H %STARTDIR%\prerequisites.bat %STARTDIR%\.plugin_manager\files\prerequisites.bat
-)
+echo.
+echo.
 
-rem Link all of the helper batch scripts
-for %%F in (".plugin_manager\packages\*.py") do (
-    if not "%%~nxF"=="__init__.py" (
-        if not exist %STARTDIR%\%%~nF.bat (
-            mklink /H %STARTDIR%\%%~nF.bat %STARTDIR%\.plugin_manager\files\caller.bat
-        )
+rem Loop through all hooks
+for %%i in (.\.plugin_helpers\hooks\*.*) do (
+
+    rem Create the hook if it needs created
+    if not exist %STARTDIR%\.git\hooks\%%~ni (
+
+        mklink /H %STARTDIR%\.git\hooks\%%~ni %%i
     )
 )
+
+rem Get the current git branch
+for /f %%a in ('git rev-parse --abbrev-ref HEAD') do set CURRENT_BRANCH=%%a
+
+rem Force a checkout to execute the checkout hook
+git checkout %CURRENT_BRANCH%
 
 pause
