@@ -19,24 +19,11 @@ if exist %STARTDIR%\settings.ini (
     echo You MUST have PYTHON_EXECUTABLE defined before going further.
 )
 
-rem Does the config file already exist?
-if exist %STARTDIR%\config.ini (
-
-    echo config.ini file already exists.  Please edit it to your liking.
-    echo If there is an error in the file, please delete it and re-run this script.
-
-) else (
-
-    rem Copy the default config
-    copy .plugin_manager\tools\config.ini config.ini
-    echo Creating config.ini file.  Set values to your specifications before executing any commands.
-)
-
 echo.
 echo.
 
 rem Loop through all hooks
-for %%i in (.\.plugin_helpers\hooks\*.*) do (
+for %%i in (.\.plugin_manager\hooks\*.*) do (
 
     rem Create the hook if it needs created
     if not exist %STARTDIR%\.git\hooks\%%~ni (

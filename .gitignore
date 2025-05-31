@@ -1,6 +1,9 @@
 # All sub-directories
 /*/
 
+# All __pycache__ directories
+__pycache__
+
 # Linux temp files
 *~
 

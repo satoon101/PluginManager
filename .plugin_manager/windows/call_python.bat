@@ -1,7 +1,7 @@
 @echo off
 
 rem Execute the configuration
-call .plugin_manager/files/exec_settings
+call .plugin_manager/windows/exec_settings
 
 rem Did the configuration encounter no errors?
 if %errorlevel% == 0 (
