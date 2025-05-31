@@ -1,3 +1,0 @@
-[submodule ".plugin_helpers"]
-	path = .plugin_helpers
-	url = git@github.com:satoon101/PluginManagerBase.git

@@ -243,7 +243,7 @@ source_python_addons_directories = {
     ).dirs() if x.stem != "bin"
 }
 
-_support = ConfigObj(START_DIR / ".plugin_helpers" / "tools" / "support.ini")
+_support = ConfigObj(START_DIR / ".plugin_manager" / "tools" / "support.ini")
 
 supported_games = {}
 

@@ -14,7 +14,7 @@ if exist %STARTDIR%\settings.ini (
 ) else (
 
     rem Copy the default settings
-    copy .plugin_helpers\tools\settings.ini settings.ini
+    copy .plugin_manager\tools\settings.ini settings.ini
     echo Creating settings.ini file.  Set values to your specifications then re-execute setup.bat.
     echo You MUST have PYTHON_EXECUTABLE defined before going further.
 )
@@ -28,7 +28,7 @@ if exist %STARTDIR%\config.ini (
 ) else (
 
     rem Copy the default config
-    copy .plugin_helpers\tools\config.ini config.ini
+    copy .plugin_manager\tools\config.ini config.ini
     echo Creating config.ini file.  Set values to your specifications before executing any commands.
 )
 
@@ -61,14 +61,14 @@ endlocal
 
 rem Link the prerequisite file
 if not exist %STARTDIR%\prerequisites.bat (
-    mklink /H %STARTDIR%\prerequisites.bat %STARTDIR%\.plugin_helpers\files\prerequisites.bat
+    mklink /H %STARTDIR%\prerequisites.bat %STARTDIR%\.plugin_manager\files\prerequisites.bat
 )
 
 rem Link all of the helper batch scripts
-for %%F in (".plugin_helpers\packages\*.py") do (
+for %%F in (".plugin_manager\packages\*.py") do (
     if not "%%~nxF"=="__init__.py" (
         if not exist %STARTDIR%\%%~nF.bat (
-            mklink /H %STARTDIR%\%%~nF.bat %STARTDIR%\.plugin_helpers\files\caller.bat
+            mklink /H %STARTDIR%\%%~nF.bat %STARTDIR%\.plugin_manager\files\caller.bat
         )
     )
 )
