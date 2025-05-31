@@ -204,14 +204,13 @@ supported_games = _get_supported_games()
 # ==============================================================================
 if __name__ == "__main__":
 
-    print('starting')
     # Get the game to link
-    # _game_name = _get_game()
-    # if _game_name is not None:
-    #     clear_screen()
-    #     if _game_name == "ALL":
-    #         for _game_name in supported_games:
-    #             SPLinker(_game_name).link_game()
-    #
-    #     else:
-    #         SPLinker(_game_name).link_game()
+    _game_name = _get_game()
+    if _game_name is not None:
+        clear_screen()
+        if _game_name == "ALL":
+            for _game_name in supported_games:
+                SPLinker(_game_name).link_game()
+
+        else:
+            SPLinker(_game_name).link_game()
