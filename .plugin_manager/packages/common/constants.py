@@ -29,9 +29,9 @@ CORE_BINARY = f"core.{_binary}"
 START_DIR = Path(os.environ["STARTDIR"])
 config = dict(ChainMap(*ConfigObj(START_DIR / 'config.ini').values()))
 
-PLUGIN_PRIMARY_FILES_DIR = ".files/plugin_primary_files"
-PLUGIN_REPO_ROOT_FILES_DIR = ".files/plugin_repo_root_files"
-CONDITIONAL_PYTHON_FILES_DIR = ".files/conditional_python_files"
+PLUGIN_PRIMARY_FILES_DIR = START_DIR / ".files/plugin_primary_files"
+PLUGIN_REPO_ROOT_FILES_DIR = START_DIR / ".files/plugin_repo_root_files"
+CONDITIONAL_PYTHON_FILES_DIR = START_DIR / ".files/conditional_python_files"
 
 LINK_BASE_DIR = Path(config["LINK_BASE_DIRECTORY"])
 RELEASE_DIR = Path(config["RELEASE_DIRECTORY"])

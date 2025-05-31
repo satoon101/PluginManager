@@ -7,7 +7,6 @@
 # Python
 from contextlib import suppress
 from functools import cached_property
-from operator import attrgetter
 from warnings import warn
 
 # Site-package
@@ -50,7 +49,7 @@ allowed_conditional_paths = {
     },
     "data": {
         "path": config["DATA_BASE_PATH"],
-        "extension": "rst",
+        "extension": "json",
     },
     "docs": {
         "path": config["DOCS_BASE_PATH"],
@@ -75,33 +74,29 @@ allowed_conditional_paths = {
 }
 diff = set(given_conditional_paths).difference(allowed_conditional_paths)
 if diff:
-    msg = f"Invalid conditional paths: {', '.join(sorted(diff))}"
-    raise ValueError(msg)
+    _msg = f"Invalid conditional paths: {', '.join(sorted(diff))}"
+    raise ValueError(_msg)
 
-found_conditional_files = list(
-    map(
-        str,
-        map(
-            attrgetter('name'), CONDITIONAL_PYTHON_FILES_DIR.files()
-        ),
-    )
-)
+found_conditional_files = [
+    str(item.stem) for item in CONDITIONAL_PYTHON_FILES_DIR.files()
+    if item.name != "delete.me"
+]
 given_conditional_files = config["CONDITIONAL_PYTHON_FILES"]
 diff = set(found_conditional_files).difference(given_conditional_files)
 if diff:
-    msg = (
+    _msg = (
         f"Conditional files found in directory, but not in configuration:"
         f" {', '.join(sorted(diff))}"
     )
-    raise ValueError(msg)
+    raise ValueError(_msg)
 
 diff = set(given_conditional_files).difference(found_conditional_files)
 if diff:
-    msg = (
+    _msg = (
         f"Conditional files found in configuration, but not in directory:"
         f" {', '.join(sorted(diff))}"
     )
-    raise ValueError(msg)
+    raise ValueError(_msg)
 
 
 # ==============================================================================
@@ -119,7 +114,10 @@ class PluginCreater:
 
     @cached_property
     def plugin_path(self):
-        return self.plugin_base_path / config["PLUGIN_BASE_PATH"] / self.plugin_name
+        return self.plugin_base_path.joinpath(
+            config["PLUGIN_BASE_PATH"],
+            self.plugin_name,
+        )
 
     @cached_property
     def plugin_prefix(self):
@@ -154,6 +152,8 @@ class PluginCreater:
     def create_primary_files(self):
         """Copy repo primary files to the repository."""
         for file in PLUGIN_PRIMARY_FILES_DIR.files():
+            if file.name == "delete.me":
+                continue
             self._copy_and_format_file(
                 file=file,
             )
@@ -166,36 +166,40 @@ class PluginCreater:
 
     def copy_extra_python_files(self):
         """Copy any of the extra base plugin files."""
-        for key, value in _extra_py_files_in_plugin.items():
+        for key, value in config["CONDITIONAL_PYTHON_FILES"].items():
+            key = f"{key}.py"
             if not self.options.get(key):
                 continue
             self._copy_and_format_file(
-                file=PLUGIN_PRIMARY_FILES_DIR / key,
+                file=CONDITIONAL_PYTHON_FILES_DIR / key,
             )
             if not self.options.get(f"{key}_translations"):
                 continue
-            # TODO: create the translation file
-            pass
+            self._create_file_or_directory(
+                self.plugin_base_path,
+                self.options.get(f"{key}_translation_path"),
+                filename=f"{self.plugin_name}.ini",
+            )
 
     def create_extra_directories_and_files(self):
         """Create the extra files/directories based on the configuration."""
-        for key, values in extra_file_paths.items():
+        for key, values in config["CONDITIONAL_FILE_OR_DIRECTORY"].items():
             value = self.options.get(key)
             if not value:
                 continue
-            base_path = values["path"]
-            extension = values["extension"]
+            path = allowed_conditional_paths[key]["path"]
+            extension = allowed_conditional_paths[key]["extension"]
             if value == "file":
-                # TODO: create file
-                self._create_file(
-                    base_path=base_path,
+                self._create_file_or_directory(
+                    self.plugin_base_path,
+                    path,
                     filename=f"{self.plugin_name}.{extension}",
                 )
             elif value == "dir":
-                # TODO: work on filepath
-                self._create_file(
-                    base_path=base_path,
-                    filename=f"{self.plugin_name}.{extension}",
+                self._create_file_or_directory(
+                    self.plugin_base_path,
+                    path,
+                    self.plugin_name,
                 )
             else:
                 warn(
@@ -205,6 +209,8 @@ class PluginCreater:
 
     def _copy_and_format_file(self, file):
         new_file = self.plugin_path / file.name
+        if file.stem == "plugin":
+            new_file = new_file.with_stem(self.plugin_name)
         with file.open() as open_file:
             file_contents = Template(open_file.read())
 
@@ -219,11 +225,12 @@ class PluginCreater:
             open_file.write(file_contents)
 
     @staticmethod
-    def _create_file(base_path, *args, filename):
+    def _create_file_or_directory(base_path, *args, filename=None):
         """Create the directory using the given arguments."""
         current_path = base_path.joinpath(*args)
         current_path.makedirs()
-        current_path.joinpath(filename).touch()
+        if filename is not None:
+            current_path.joinpath(filename).touch()
 
 
 # ==============================================================================
@@ -266,16 +273,10 @@ def _get_extra_file(name):
             return _boolean_values[value]
 
 
-def _get_translation_file(name, item):
+def _get_translation_file(name, always_create):
     """."""
-    value = item.get("create_translations_file")
-    values = {
-        "never": False,
-        None: False,
-        "always": True,
-    }
-    if value != "ask":
-        return values.get(value, False)
+    if always_create:
+        return always_create
 
     while True:
         clear_screen()
@@ -298,7 +299,7 @@ def _get_directory_or_file(name, item):
     elif item == "both":
         text = (
             f"Do you want to include a {name} file, directory, or neither?\n\n"
-            f"\t(1) File\n\t(2) Directory\n\t(3) Neither\n\n",
+            f"\t(1) File\n\t(2) Directory\n\t(3) Neither\n\n"
         )
         check_values = _directory_or_file
     else:
@@ -323,19 +324,29 @@ if __name__ == "__main__":
 
     # Was a valid plugin name given?
     _options = {}
-    if _plugin_name is not None:
-        for _key, _values in _extra_py_files_in_plugin.items():
-            _create = _values["always_create"] or _get_extra_file(_key)
-            _options[_key] = _create
-            if _create:
-                _options[f"{_key}_translations"] = _get_translation_file(
-                    _key,
-                    _values,
-                )
-        for _key, _values in _extra_file_or_directory.items():
-            _options[_key] = _get_directory_or_file(_key, _values)
+    for _key, _values in config["CONDITIONAL_PYTHON_FILES"].items():
+        _key = f"{_key}.py"
+        _options[_key] = _values["always_create_file"] or _get_extra_file(_key)
+        if not _options[_key]:
+            continue
+        _create_translations_file = _values.get(
+            "always_create_translations_file"
+        )
+        _translations_file_path = _values.get("translations_file_path")
+        if (
+            _create_translations_file is None or
+            _translations_file_path is None
+        ):
+            continue
+        _options[f"{_key}_translations"] = _get_translation_file(
+            _key,
+            _create_translations_file,
+        )
+        _options[f"{_key}_translation_path"] = _translations_file_path
+    for _key, _values in config["CONDITIONAL_FILE_OR_DIRECTORY"].items():
+        _options[_key] = _get_directory_or_file(_key, _values)
 
-        PluginCreater(
-            plugin_name=_plugin_name,
-            options=_options,
-        ).create_plugin()
+    PluginCreater(
+        plugin_name=_plugin_name,
+        options=_options,
+    ).create_plugin()
