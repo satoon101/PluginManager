@@ -1,0 +1,6 @@
+configobj
+jinja2
+path
+requests
+ruff
+GitPython

@@ -19,3 +19,4 @@
 # Allow base files
 !setup.*
 !.example_files
+!.plugin_manager
