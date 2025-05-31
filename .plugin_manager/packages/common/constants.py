@@ -7,6 +7,7 @@
 # ==============================================================================
 # Python
 import os
+import sys
 from collections import ChainMap
 from platform import system
 
@@ -28,6 +29,14 @@ CORE_BINARY = f"core.{_binary}"
 # Store the Path based configuration values
 START_DIR = Path(os.environ["STARTDIR"])
 config = dict(ChainMap(*ConfigObj(START_DIR / 'config.ini').values()))
+
+_command = Path(sys.argv[0]).stem
+_disabled_commands = config["DISABLED_COMMANDS"]
+if isinstance(_disabled_commands, str):
+    _disabled_commands = [_disabled_commands]
+if _command in config["DISABLED_COMMANDS"]:
+    msg = f"Command '{_command}' is disabled."
+    raise ValueError(msg)
 
 PLUGIN_PRIMARY_FILES_DIR = START_DIR / ".files/plugin_primary_files"
 PLUGIN_REPO_ROOT_FILES_DIR = START_DIR / ".files/plugin_repo_root_files"
