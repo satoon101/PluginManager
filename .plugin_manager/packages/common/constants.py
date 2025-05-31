@@ -21,11 +21,6 @@ from path import Path
 # ==============================================================================
 PLATFORM = system().lower()
 
-# Store the binary names
-_binary = "dll" if PLATFORM == "windows" else "so"
-SOURCE_BINARY = f"source-python.{_binary}"
-CORE_BINARY = f"core.{_binary}"
-
 # Store the Path based configuration values
 START_DIR = Path(os.environ["STARTDIR"])
 config = dict(ChainMap(*ConfigObj(START_DIR / 'config.ini').values()))

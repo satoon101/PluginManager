@@ -6,15 +6,11 @@
 # >> IMPORTS
 # ==============================================================================
 # Python
-from contextlib import suppress
 from os import system
-from warnings import warn
 
 # Package
 from .constants import (
-    CORE_BINARY,
     PLATFORM,
-    SOURCE_BINARY,
     PLUGIN_LIST,
 )
 
