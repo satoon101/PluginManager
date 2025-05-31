@@ -9,3 +9,4 @@ if %errorlevel% == 0 (
     rem Call the given package
     %PYTHON_EXECUTABLE% %STARTDIR%\.plugin_manager\packages\%~n1.py
 )
+pause
