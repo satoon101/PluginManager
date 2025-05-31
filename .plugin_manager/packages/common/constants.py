@@ -38,9 +38,10 @@ if _command in config["DISABLED_COMMANDS"]:
     msg = f"Command '{_command}' is disabled."
     raise ValueError(msg)
 
-PLUGIN_PRIMARY_FILES_DIR = START_DIR / ".files/plugin_primary_files"
-PLUGIN_REPO_ROOT_FILES_DIR = START_DIR / ".files/plugin_repo_root_files"
-CONDITIONAL_PYTHON_FILES_DIR = START_DIR / ".files/conditional_python_files"
+_base_path = START_DIR / ".plugin_manager/files"
+PLUGIN_PRIMARY_FILES_DIR = _base_path / "plugin_primary_files"
+PLUGIN_REPO_ROOT_FILES_DIR = _base_path / "plugin_repo_root_files"
+CONDITIONAL_PYTHON_FILES_DIR = _base_path / "conditional_python_files"
 
 LINK_BASE_DIR = Path(config["LINK_BASE_DIRECTORY"])
 RELEASE_DIR = Path(config["RELEASE_DIRECTORY"])
