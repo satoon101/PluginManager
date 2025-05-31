@@ -15,227 +15,30 @@ from path import Path
 
 # Package
 from common.constants import (
-    CORE_BINARY,
     PLATFORM,
-    SOURCE_BINARY,
-    SOURCE_PYTHON_DIR,
     START_DIR,
     config,
 )
 from common.functions import clear_screen, link_directory, link_file
 
-
 # ==============================================================================
-# >> MAIN FUNCTION
+# >> GLOBAL VARIABLES
 # ==============================================================================
-def get_game():
-    """Return a game to do something with."""
-    # Clear the screen
-    clear_screen()
-
-    # Are there any games?
-    if not supported_games:
-        print("There are no games to link.")
-        return None
-
-    # Get the question to ask
-    message = "Which game/server would you like to link?\n\n"
-
-    # Loop through each game
-    for number, game in enumerate(supported_games, 1):
-
-        # Add the current game
-        message += f"\t({number}) {game}\n"
-
-    # Add ALL to the list
-    message += f"\t({len(supported_games) + 1}) ALL\n"
-
-    # Ask which game to do something with
-    value = input(f"{message}\n").strip()
-
-    # Was a game name given?
-    if value in [*supported_games, "ALL"]:
-
-        # Return the value
-        return value
-
-    # Was an integer given?
-    with suppress(ValueError):
-
-        # Typecast the value
-        value = int(value)
-
-        # Was the value a valid server choice?
-        if value <= len(supported_games):
-
-            # Return the game by index
-            return list(supported_games)[value - 1]
-
-        # Was ALL's choice given?
-        if value == len(supported_games) + 1:
-
-            # Return ALL
-            return "ALL"
-
-    # If no valid choice was given, try again
-    return get_game()
-
-
-def link_game(game_name):
-    """Link Source.Python's repository to the given game/server."""
-    # Was an invalid game name given?
-    if game_name not in supported_games:
-        print(f'Invalid game name "{game_name}".')
-        return
-
-    # Print a message about the linking
-    print(f"Linking Source.Python to {game_name}.\n")
-
-    # Link Source.Python to the game
-    link_source_python(game_name)
-
-
-def link_source_python(game_name):
-    """Link Source.Python's repository to the given game/server."""
-    # Get the path to the game/server
-    path = supported_games[game_name]["directory"]
-
-    # Loop through each directory to link
-    for dir_name in source_python_directories:
-
-        # Get the directory path
-        directory = path / dir_name
-
-        # Create the directory if it doesn't exist
-        if not directory.is_dir():
-            directory.makedirs()
-
-        # Get the source-python path
-        sp_dir = directory / "source-python"
-
-        # Does the source-python sub-directory already exist?
-        if sp_dir.is_dir():
-            print(
-                f"Cannot link ../{dir_name}/source-python/ directory."
-                f"  Directory already exists.\n",
-            )
-            continue
-
-        # Link the directory
-        link_directory(
-            SOURCE_PYTHON_DIR / dir_name / "source-python", sp_dir,
-        )
-        print(f"Successfully linked ../{dir_name}/source-python/\n")
-
-    # Get the server's addons directory
-    server_addons = path / "addons" / "source-python"
-
-    # Create the addons directory if it doesn't exist
-    if not server_addons.is_dir():
-        server_addons.makedirs()
-
-    # Loop through each directory to link
-    for dir_name in source_python_addons_directories:
-
-        # Get the directory path
-        directory = server_addons / dir_name
-
-        # Does the directory already exist on the server?
-        if directory.is_dir():
-            print(
-                f"Cannot link ../addons/source-python/{dir_name}/ "
-                f"directory.  Directory already exists.\n",
-            )
-            continue
-
-        # Link the directory
-        link_directory(SOURCE_PYTHON_ADDONS_DIR / dir_name, directory)
-        print(f"Successfully linked ../addons/source-python/{dir_name}/\n")
-
-    # Get the bin directory
-    bin_dir = server_addons / "bin"
-
-    # Copy the bin directory if it doesn't exist
-    if not bin_dir.is_dir():
-        SOURCE_PYTHON_ADDONS_DIR.joinpath("bin").copytree(bin_dir)
-
-    # Get the .vdf's path
-    vdf = path / "addons" / "source-python.vdf"
-
-    # Copy the .vdf if it needs copied
-    if not vdf.is_file():
-        SOURCE_PYTHON_DIR.joinpath("addons", "source-python.vdf").copy(vdf)
-
-    # Get the build directory for the game/server's branch
-    build_dir = SOURCE_PYTHON_BUILDS_DIR / supported_games[game_name]["branch"]
-
-    # Add 'Release' to the directory if Windows
-    if PLATFORM == "windows":
-        build_dir = build_dir / "Release"
-
-    # If the build directory doesn't exist, create the build
-    if not build_dir.is_dir():
-        warn(
-            f'Build "{supported_games[game_name]["branch"]}" does not exist. '
-            f'Please create the build.',
-        )
-        return
-
-    # Link the files
-    link_file(build_dir / SOURCE_BINARY, path / "addons" / SOURCE_BINARY)
-    link_file(
-        build_dir / CORE_BINARY,
-        path / "addons" / "source-python" / "bin" / CORE_BINARY,
-    )
-
-
-# ==============================================================================
-# >> CALL MAIN FUNCTION
-# ==============================================================================
-if __name__ == "__main__":
-
-    # Get the game to link
-    _game_name = get_game()
-
-    # Was a valid game chosen?
-    if _game_name is not None:
-
-        # Clear the screen
-        clear_screen()
-
-        # Was ALL selected?
-        if _game_name == "ALL":
-
-            # Loop through each game
-            for _game_name in supported_games:
-
-                # Link the game
-                link_game(_game_name)
-
-        # Otherwise
-        else:
-
-            # Link the game
-            link_game(_game_name)
-
-
-# Get Source.Python's addons directory
+_binary = "dll" if PLATFORM == "windows" else "so"
+SOURCE_BINARY = f"source-python.{_binary}"
+CORE_BINARY = f"core.{_binary}"
+SOURCE_PYTHON_DIR = Path(config["SOURCE_PYTHON_DIRECTORY"])
 SOURCE_PYTHON_ADDONS_DIR = SOURCE_PYTHON_DIR / "addons" / "source-python"
-
-# Get Source.Python's build directory
 SOURCE_PYTHON_BUILDS_DIR = SOURCE_PYTHON_DIR.joinpath(
     "src",
     "Builds",
     "Windows" if PLATFORM == "windows" else "Linux",
 )
-
-# Get the directories to link
 source_python_directories = {
     x.stem for x in SOURCE_PYTHON_DIR.dirs()
-    if x.stem not in ("addons", "src", ".git")
+    if not x.stem.startswith((".", "_")) and
+    x.stem not in ("addons", "src")
 }
-
-# Get the addons directories to link
 source_python_addons_directories = {
     x.stem for x in SOURCE_PYTHON_DIR.joinpath(
         "addons",
@@ -243,31 +46,172 @@ source_python_addons_directories = {
     ).dirs() if x.stem != "bin"
 }
 
-_support = ConfigObj(START_DIR / ".plugin_manager" / "tools" / "support.ini")
 
-supported_games = {}
+# ==============================================================================
+# >> CLASSES
+# ==============================================================================
+class SPLinker:
+    def __init__(self, game_name):
+        if game_name not in supported_games:
+            msg = f"{game_name} is not a supported game"
+            raise ValueError(msg)
+        self.game_name = game_name
 
-_check_files = ["srcds.exe", "srcds_run", "srcds_linux"]
+    def link_game(self):
+        print(f"Linking Source.Python to {self.game_name}.\n")
+        path = supported_games[self.game_name]["directory"]
+        branch = supported_games[self.game_name]["branch"]
+        for dir_name in source_python_directories:
+            directory = path / dir_name
+            if not directory.is_dir():
+                directory.makedirs()
 
-for _directory in config["SERVER_DIRECTORIES"].split(";"):
-    _path = Path(_directory)
-    for _check_directory in _path.dirs():
-        if not any(
-            _check_directory.joinpath(_check_file).is_file()
-            for _check_file in _check_files
-        ):
-            continue
-        for _game in _support["servers"]:
-            _game_dir = _check_directory / _support["servers"][_game]["folder"]
-            if not _game_dir.is_dir():
-                continue
-            if _game in supported_games:
-                warn(
-                    f"{_game} already assigned to {supported_games[_game]}.  "
-                    f"New path found: {_game_dir}",
+            sp_dir = directory / "source-python"
+            if sp_dir.is_dir():
+                print(
+                    f"Cannot link ../{dir_name}/source-python/ directory."
+                    f"  Directory already exists.\n",
                 )
                 continue
-            supported_games[_game] = {
-                "directory": _game_dir,
-                "branch": _support["servers"][_game]["branch"],
-            }
+
+            link_directory(
+                src=SOURCE_PYTHON_DIR / dir_name / "source-python",
+                dest=sp_dir,
+            )
+            print(f"Successfully linked ../{dir_name}/source-python/\n")
+
+        server_addons = path / "addons" / "source-python"
+        if not server_addons.is_dir():
+            server_addons.makedirs()
+
+        for dir_name in source_python_addons_directories:
+            directory = server_addons / dir_name
+            if directory.is_dir():
+                print(
+                    f"Cannot link ../addons/source-python/{dir_name}/ "
+                    f"directory.  Directory already exists.\n",
+                )
+                continue
+
+            link_directory(
+                src=SOURCE_PYTHON_ADDONS_DIR / dir_name,
+                dest=directory,
+            )
+            print(f"Successfully linked ../addons/source-python/{dir_name}/\n")
+
+        bin_dir = server_addons / "bin"
+        if not bin_dir.is_dir():
+            SOURCE_PYTHON_ADDONS_DIR.joinpath("bin").copytree(bin_dir)
+
+        vdf = path / "addons" / "source-python.vdf"
+        if not vdf.is_file():
+            SOURCE_PYTHON_DIR.joinpath("addons", "source-python.vdf").copy(vdf)
+
+        build_dir = SOURCE_PYTHON_BUILDS_DIR / branch
+        if PLATFORM == "windows":
+            build_dir = build_dir / "Release"
+
+        if not build_dir.is_dir():
+            warn(
+                f'Build "{branch}" does not exist. Please create the build.',
+            )
+            return
+
+        link_file(
+            src=build_dir / SOURCE_BINARY,
+            dest=path / "addons" / SOURCE_BINARY,
+        )
+        link_file(
+            src=build_dir / CORE_BINARY,
+            dest=path / "addons" / "source-python" / "bin" / CORE_BINARY,
+        )
+
+
+# ==============================================================================
+# >> HELPER FUNCTIONS
+# ==============================================================================
+def _get_game():
+    """Return a game to do something with."""
+    clear_screen()
+
+    # Are there any games?
+    if not supported_games:
+        print("There are no games to link.")
+        return None
+
+    # Gather the list of games
+    message = "Which game/server would you like to link?\n\n"
+    for number, game in enumerate(supported_games, start=1):
+        message += f"\t({number}) {game}\n"
+
+    # Add ALL to the list
+    message += f"\t({len(supported_games) + 1}) ALL\n\n"
+
+    # Get the game to link to
+    while True:
+        value = input(message).strip()
+        if value in [*supported_games, "ALL"]:
+            return value
+
+        with suppress(ValueError):
+            value = int(value)
+            if value <= len(supported_games):
+                return list(supported_games)[value - 1]
+
+            if value == len(supported_games) + 1:
+                return "ALL"
+
+
+def _get_supported_games():
+    games = {}
+    server_directories = config["SERVER_DIRECTORIES"]
+    if isinstance(server_directories, str):
+        server_directories = [server_directories]
+
+    _check_files = ["srcds.exe", "srcds_run", "srcds_linux"]
+    _support = ConfigObj(
+        START_DIR / ".plugin_manager" / "tools" / "support.ini"
+    )
+    for _directory in server_directories:
+        _path = Path(_directory)
+        for _check_directory in _path.dirs():
+            if not any(
+                _check_directory.joinpath(_check_file).is_file()
+                for _check_file in _check_files
+            ):
+                continue
+            for _game, _values in _support.items():
+                _game_dir = _check_directory / _values["folder"]
+                if not _game_dir.is_dir():
+                    continue
+                if _game in games:
+                    warn(
+                        f"{_game} already assigned to {games[_game]}."
+                        f" New path found: {_game_dir}",
+                    )
+                    continue
+                games[_game] = {
+                    "directory": _game_dir,
+                    "branch": _values["branch"],
+                }
+    return games
+
+supported_games = _get_supported_games()
+
+
+# ==============================================================================
+# >> CALL MAIN FUNCTION
+# ==============================================================================
+if __name__ == "__main__":
+
+    print('starting')
+    # Get the game to link
+    # _game_name = _get_game()
+    # if _game_name is not None:
+    #     clear_screen()
+    #     if _game_name == "ALL":
+    #         for _game_name in supported_games:
+    #             SPLinker(_game_name).link_game()
+    #
+    #     else:
+    #         SPLinker(_game_name).link_game()
