@@ -47,7 +47,7 @@ def get_plugin(suffix, *, allow_all=True):
         try:
             value = input(message)
             choice_index = int(value)
-            assert 0 < choice_index < len(options)
+            assert 0 < choice_index <= len(options)
         except (ValueError, AssertionError):
             clear_screen()
             print(f"Invalid choice '{value}'. Please try again.")
