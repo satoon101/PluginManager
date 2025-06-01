@@ -83,3 +83,9 @@ def link_file(src, dest):
 
         # Link using Linux format
         system(f'ln -s "{src}" "{dest}"')
+
+
+def copy_over_file(src, dest):
+    if dest.is_file():
+        dest.remove()
+    src.copy(dest)

@@ -19,7 +19,12 @@ from common.constants import (
     START_DIR,
     config,
 )
-from common.functions import clear_screen, link_directory, link_file
+from common.functions import (
+    clear_screen,
+    copy_over_file,
+    link_directory,
+    link_file,
+)
 
 # ==============================================================================
 # >> GLOBAL VARIABLES
@@ -117,11 +122,11 @@ class SPLinker:
             )
             return
 
-        link_file(
+        copy_over_file(
             src=build_dir / SOURCE_BINARY,
             dest=path / "addons" / SOURCE_BINARY,
         )
-        link_file(
+        copy_over_file(
             src=build_dir / CORE_BINARY,
             dest=path / "addons" / "source-python" / "bin" / CORE_BINARY,
         )
