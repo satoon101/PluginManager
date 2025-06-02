@@ -4,8 +4,9 @@
 PluginHelpers is a set of tools to be used with [Source.Python](https://github.com/Source-Python-Dev-Team/Source.Python) plugins.
 
 These tools allow you to do the following:
-* Create a new Source.Python plugin.
 * Check your plugins for any standards issues.
+* Clone your existing plugins from Github
+* Create a new Source.Python plugin.
 * Link Source.Python to your test servers and games.
 * Link your plugins to Source.Python (which also links them to your servers and games).
 * Create a release .zip file for your plugins.
