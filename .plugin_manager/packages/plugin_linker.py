@@ -5,6 +5,9 @@
 # ==============================================================================
 # >> IMPORTS
 # ==============================================================================
+# Python
+from path import Path
+
 # Package
 from common.constants import (
     LINK_BASE_DIR,
@@ -35,6 +38,26 @@ def link_plugin(plugin_name):
             path,
         )
 
+    translations_path = Path(config["TRANSLATIONS_BASE_PATH"])
+    for values in config["CONDITIONAL_PYTHON_FILES"].values():
+        path = values.get("translations_file_path")
+        if not path:
+            continue
+
+        _link_directory_or_files(
+            plugin_name,
+            translations_path / path,
+        )
+
+    for path in config["CONDITIONAL_PATHS"].values():
+        if not path.startswith(translations_path):
+            continue
+
+        _link_directory_or_files(
+            plugin_name,
+            path,
+        )
+
 
 # ==============================================================================
 # >> HELPER FUNCTIONS
@@ -58,17 +81,20 @@ def _link_directory_or_files(plugin_name, *args):
 
 
 # ==============================================================================
-# >> CALL MAIN FUNCTION
+# >> MAIN FUNCTION
 # ==============================================================================
-if __name__ == "__main__":
-
-    _plugin_name = get_plugin("link")
+def run():
+    plugin_name = get_plugin("link")
 
     # Was a valid plugin chosen?
-    if _plugin_name is not None:
+    if plugin_name is not None:
         clear_screen()
-        if _plugin_name == "ALL":
-            for _plugin_name in PLUGIN_LIST:
-                link_plugin(_plugin_name)
+        if plugin_name == "ALL":
+            for plugin_name in PLUGIN_LIST:
+                link_plugin(plugin_name)
         else:
-            link_plugin(_plugin_name)
+            link_plugin(plugin_name)
+
+
+if __name__ == "__main__":
+    run()
