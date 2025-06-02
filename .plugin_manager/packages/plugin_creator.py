@@ -349,52 +349,55 @@ def _get_conditional_path(name, path):
 
 
 # ==============================================================================
-# >> CALL MAIN FUNCTION
+# >> MAIN FUNCTION
 # ==============================================================================
-if __name__ == "__main__":
-
-    _plugin_name = _get_plugin_name()
+def run():
+    plugin_name = _get_plugin_name()
 
     # Was a valid plugin name given?
-    _options = {
+    options = {
         "python": {},
         "file_or_directory": {},
         "paths": {},
     }
-    for _key, _values in config["CONDITIONAL_PYTHON_FILES"].items():
-        _key = f"{_key}.py"
-        _options["python"][_key] = (
-            _values.as_bool("always_create_file")
-            or _get_extra_file(_key)
+    for key, values in config["CONDITIONAL_PYTHON_FILES"].items():
+        key = f"{key}.py"
+        options["python"][key] = (
+            values.as_bool("always_create_file")
+            or _get_extra_file(key)
         )
-        if not _options["python"][_key]:
+        if not options["python"][key]:
             continue
 
         if (
-            "always_create_translations_file" not in _values
-            or "translations_file_path" not in _values
+            "always_create_translations_file" not in values
+            or "translations_file_path" not in values
         ):
             continue
 
-        _create_translations_file = _values.as_bool(
+        _create_translations_file = values.as_bool(
             "always_create_translations_file"
         )
-        _translations_file_path = _values["translations_file_path"]
-        _options["python"][f"{_key}_translations"] = _get_translation_file(
-            _key,
+        _translations_file_path = values["translations_file_path"]
+        options["python"][f"{key}_translations"] = _get_translation_file(
+            key,
             _create_translations_file,
         )
-        _options["python"][f"{_key}_translation_path"] = _translations_file_path
-    for _key, _values in config["CONDITIONAL_FILE_OR_DIRECTORY"].items():
-        _options["file_or_directory"][_key] = _get_directory_or_file(
-            name=_key,
-            item=_values,
+        options["python"][f"{key}_translation_path"] = _translations_file_path
+    for key, values in config["CONDITIONAL_FILE_OR_DIRECTORY"].items():
+        options["file_or_directory"][key] = _get_directory_or_file(
+            name=key,
+            item=values,
         )
 
-    for _key, _value in config["CONDITIONAL_PATHS"].items():
-        _options["paths"][_key] = _get_conditional_path(_key, _value)
+    for key, value in config["CONDITIONAL_PATHS"].items():
+        options["paths"][key] = _get_conditional_path(key, value)
 
     PluginCreater(
-        plugin_name=_plugin_name,
-        options=_options,
+        plugin_name=plugin_name,
+        options=options,
     ).create_plugin()
+
+
+if __name__ == "__main__":
+    run()

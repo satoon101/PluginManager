@@ -27,7 +27,7 @@ orgs_url = "https://api.github.com/orgs/{org}/repos"
 per_page = 30
 
 ORGANIZATIONS = config["ORGANIZATIONS"]
-if isinstance(ORGANIZATIONS, str):
+if ORGANIZATIONS and isinstance(ORGANIZATIONS, str):
     ORGANIZATIONS = [ORGANIZATIONS]
 ORGANIZATIONS = set(ORGANIZATIONS)
 
@@ -127,12 +127,16 @@ class RepoCloner(dict):
 
 
 # ==============================================================================
-# >> CALL MAIN FUNCTION
+# >> MAIN FUNCTION
 # ==============================================================================
-if __name__ == "__main__":
-    _cloner = RepoCloner()
-    if _cloner:
-        _plugin = _cloner.get_choice()
-        _cloner.clone_plugin(_plugin)
+def run():
+    cloner = RepoCloner()
+    if cloner:
+        plugin = cloner.get_choice()
+        cloner.clone_plugin(plugin)
     else:
         print("No plugins found.")
+
+
+if __name__ == "__main__":
+    run()

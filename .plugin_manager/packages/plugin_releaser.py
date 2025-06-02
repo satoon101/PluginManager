@@ -227,18 +227,17 @@ class PluginReleaser:
 
 
 # ==============================================================================
-# >> CALL MAIN FUNCTION
+# >> MAIN FUNCTION
 # ==============================================================================
-if __name__ == "__main__":
-
+def run():
     # Get the plugin to check
-    _plugin_name = get_plugin(suffix="release", allow_all=False)
+    plugin_name = get_plugin(suffix="release", allow_all=False)
 
     # Was a valid plugin chosen?
-    if _plugin_name is not None:
+    if plugin_name is not None:
         clear_screen()
 
-        plugin_releaser = PluginReleaser(_plugin_name)
+        plugin_releaser = PluginReleaser(plugin_name)
         if (
             plugin_releaser.validate_diff() and
             plugin_releaser.validate_version_exists()
@@ -251,3 +250,7 @@ if __name__ == "__main__":
                 f" {plugin_releaser.version} release:\n\t"
                 f'"{plugin_releaser.zip_path}"\n\n'
             )
+
+
+if __name__ == "__main__":
+    run()

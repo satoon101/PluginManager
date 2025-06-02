@@ -29,19 +29,22 @@ def check_plugin(plugin_name):
 
 
 # ==============================================================================
-# >> CALL MAIN FUNCTION
+# >> MAIN FUNCTION
 # ==============================================================================
-if __name__ == "__main__":
-
+def run():
     # Get the plugin to check
-    _plugin_name = get_plugin("check")
-    if _plugin_name is not None:
+    plugin_name = get_plugin("check")
+    if plugin_name is not None:
 
         clear_screen()
-        if _plugin_name == "ALL":
-            for _plugin_name in PLUGIN_LIST:
-                print(f'Checking plugin "{_plugin_name}"')
-                check_plugin(_plugin_name)
+        if plugin_name == "ALL":
+            for plugin_name in PLUGIN_LIST:
+                print(f'Checking plugin "{plugin_name}"')
+                check_plugin(plugin_name)
 
         else:
-            check_plugin(_plugin_name)
+            check_plugin(plugin_name)
+
+
+if __name__ == "__main__":
+    run()
