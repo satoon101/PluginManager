@@ -23,19 +23,20 @@ from common.functions import clear_screen, get_plugin, link_directory, link_file
 # ==============================================================================
 def link_plugin(plugin_name):
     """Link the given plugin name to Source.Python's repository."""
-    for path in (
-        config["CONFIG_BASE_PATH"],
-        config["DATA_BASE_PATH"],
-        config["DOCS_BASE_PATH"],
-        config["EVENTS_BASE_PATH"],
-        config["LOGS_BASE_PATH"],
-        config["PLUGIN_BASE_PATH"],
-        config["SOUND_BASE_PATH"],
-        config["TRANSLATIONS_BASE_PATH"],
-    ):
+    for path, extensions in {
+        config["CONFIG_BASE_PATH"]: ['cfg', 'ini'],
+        config["DATA_BASE_PATH"]: ['ini', 'json'],
+        config["DOCS_BASE_PATH"]: [],
+        config["EVENTS_BASE_PATH"]: [],
+        config["LOGS_BASE_PATH"]: [],
+        config["PLUGIN_BASE_PATH"]: [],
+        config["SOUND_BASE_PATH"]: ['mp3', 'wav'],
+        config["TRANSLATIONS_BASE_PATH"]: [],
+    }.items():
         _link_directory_or_files(
             plugin_name,
             path,
+            extensions=extensions,
         )
 
     translations_path = Path(config["TRANSLATIONS_BASE_PATH"])
@@ -62,8 +63,9 @@ def link_plugin(plugin_name):
 # ==============================================================================
 # >> HELPER FUNCTIONS
 # ==============================================================================
-def _link_directory_or_files(plugin_name, *args):
+def _link_directory_or_files(plugin_name, *args, extensions=None):
     """Link the directory using the given arguments."""
+    extensions = extensions or []
     plugin_path = START_DIR / plugin_name
     src = plugin_path.joinpath(*args, plugin_name)
 
@@ -73,11 +75,12 @@ def _link_directory_or_files(plugin_name, *args):
         if not dest.is_dir():
             link_directory(src, dest)
 
-    src += '.ini'
-    if src.is_file():
-        dest = LINK_BASE_DIR.joinpath(*args, plugin_name) + '.ini'
-        if not dest.is_file():
-            link_file(src, dest)
+    for extension in extensions:
+        new_src = src + f".{extension}"
+        if new_src.is_file():
+            dest = LINK_BASE_DIR.joinpath(*args, plugin_name) + f".{extension}"
+            if not dest.is_file():
+                link_file(new_src, dest)
 
 
 # ==============================================================================
