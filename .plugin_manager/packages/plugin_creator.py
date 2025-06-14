@@ -10,6 +10,8 @@ from functools import cached_property
 from warnings import warn
 
 # Site-package
+from git import Repo
+from github import Github
 from jinja2 import Template
 
 # Package
@@ -104,7 +106,7 @@ if diff:
 # ==============================================================================
 class PluginCreater:
     def __init__(self, plugin_name, options):
-        self.plugin_name = plugin_name
+        self.plugin_name = self.original_plugin_name = plugin_name
         if config["PREFIX"]:
             self.plugin_name = f"{config['PREFIX']}_{self.plugin_name}"
         self.options = options
@@ -151,6 +153,7 @@ class PluginCreater:
         self.copy_extra_python_files()
         self.create_extra_directories_and_files()
         self.create_conditional_paths()
+        self.create_github_repo_and_push()
 
     def create_primary_files(self):
         """Copy repo primary files to the repository."""
@@ -228,6 +231,41 @@ class PluginCreater:
             if path.suffix:
                 path.touch()
 
+    def create_github_repo_and_push(self):
+        repo = Repo.init(self.plugin_base_path, initial_branch="master")
+        for file in self.plugin_base_path.files():
+            repo.index.add(file.name)
+        repo.index.commit("Initial commit")
+        access_token = config["ACCESS_TOKEN"]
+        if not access_token:
+            return
+
+        github = Github(access_token)
+        user = github.get_user()
+        # TODO: Figure out the repository name
+        repo_name = self.get_github_repo_name()
+        remote_url = user.create_repo(
+            repo_name,
+            private=False,
+            auto_init=False,
+        ).ssh_url
+        repo.create_remote("origin", url=remote_url)
+        repo.remotes.origin.push()
+
+    def get_github_repo_name(self, name=None):
+        if name is None:
+            name = self.original_plugin_name.title().replace("_", "")
+            name = f"{config['REPO_PREFIX']}{name}"
+
+        if _get_yes_no_response(
+            question=f"Do you want to use the Github repo name: {name}?",
+        ):
+            return name
+
+        return self.get_github_repo_name(
+            name=input("Please enter the Github repo name you wish to use:")
+        )
+
     def _copy_and_format_file(self, file):
         new_file = self.plugin_path / file.name
         if file.stem == "plugin":
@@ -283,33 +321,6 @@ def _get_plugin_name():
                 return name
 
 
-def _get_extra_file(name):
-    """."""
-    while True:
-        clear_screen()
-        value = input(
-            f"Do you want a copy of the {name} file for your plugin?\n\n"
-            f"\t(1) Yes\n\t(2) No\n\n",
-        )
-        with suppress(KeyError):
-            return _boolean_values[value]
-
-
-def _get_translation_file(name, always_create):
-    """."""
-    if always_create:
-        return always_create
-
-    while True:
-        clear_screen()
-        value = input(
-            f"Do you want to create a translation file for {name} file?\n\n"
-            f"\t(1) Yes\n\t(2) No\n\n"
-        )
-        with suppress(KeyError):
-            return _boolean_values[value]
-
-
 def _get_directory_or_file(name, item):
     """Return whether to create the given directory or file."""
     if item in ("file", "dir"):
@@ -337,13 +348,11 @@ def _get_directory_or_file(name, item):
             return return_value
 
 
-def _get_conditional_path(name, path):
+def _get_yes_no_response(question):
+    message = f"{question}\n\n\t(1) Yes\n\t(2) No\n\n"
     while True:
         clear_screen()
-        value = input(
-            f"Do you want to create a {name} file/path?\n\n"
-            f"\t(1) Yes\n\t(2) No\n\n"
-        )
+        value = input(message)
         with suppress(KeyError):
             return _boolean_values[value]
 
@@ -364,7 +373,9 @@ def run():
         key = f"{key}.py"
         options["python"][key] = (
             values.as_bool("always_create_file")
-            or _get_extra_file(key)
+            or _get_yes_no_response(
+                f"Do you want a copy of the {key} file for your plugin?"
+            )
         )
         if not options["python"][key]:
             continue
@@ -379,9 +390,9 @@ def run():
             "always_create_translations_file"
         )
         _translations_file_path = values["translations_file_path"]
-        options["python"][f"{key}_translations"] = _get_translation_file(
-            key,
-            _create_translations_file,
+        question = f"Do you want to create a translation file for {key} file?"
+        options["python"][f"{key}_translations"] = (
+            _create_translations_file or _get_yes_no_response(question=question)
         )
         options["python"][f"{key}_translation_path"] = _translations_file_path
     for key, values in config["CONDITIONAL_FILE_OR_DIRECTORY"].items():
@@ -391,7 +402,9 @@ def run():
         )
 
     for key, value in config["CONDITIONAL_PATHS"].items():
-        options["paths"][key] = _get_conditional_path(key, value)
+        options["paths"][key] = _get_yes_no_response(
+        question=f"Do you want to create a {value} file/path?"
+    )
 
     PluginCreater(
         plugin_name=plugin_name,
