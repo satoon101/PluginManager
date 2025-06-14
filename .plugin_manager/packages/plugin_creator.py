@@ -242,7 +242,6 @@ class PluginCreater:
 
         github = Github(access_token)
         user = github.get_user()
-        # TODO: Figure out the repository name
         repo_name = self.get_github_repo_name()
         remote_url = user.create_repo(
             repo_name,
@@ -250,7 +249,7 @@ class PluginCreater:
             auto_init=False,
         ).ssh_url
         repo.create_remote("origin", url=remote_url)
-        repo.remotes.origin.push()
+        repo.git.push("--set-upstream", "origin", "master")
 
     def get_github_repo_name(self, name=None):
         if name is None:
