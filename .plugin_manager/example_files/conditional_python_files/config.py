@@ -1,6 +1,6 @@
 # ../{{ plugin_name }}/config.py
 
-"""Creates server configuration and user settings."""
+"""Creates server configuration."""
 
 # ==============================================================================
 # >> IMPORTS
