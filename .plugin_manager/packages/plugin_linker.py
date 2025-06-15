@@ -48,6 +48,7 @@ def link_plugin(plugin_name):
         _link_directory_or_files(
             plugin_name,
             translations_path / path,
+            extensions=["ini"],
         )
 
     for path in config["CONDITIONAL_PATHS"].values():
