@@ -6,7 +6,6 @@
 # >> IMPORTS
 # =============================================================================
 # Python
-import os
 import sys
 from collections import ChainMap
 from platform import system
@@ -15,6 +14,20 @@ from platform import system
 from configobj import ConfigObj
 from path import Path
 
+# =============================================================================
+# >> ALL
+# =============================================================================
+__all__ = (
+    'config',
+    'CONDITIONAL_PYTHON_FILES_DIR',
+    'LINK_BASE_DIR',
+    'PLATFORM',
+    'PLUGIN_LIST',
+    'PLUGIN_PRIMARY_FILES_DIR',
+    'PLUGIN_REPO_ROOT_FILES_DIR',
+    'RELEASE_DIR',
+    'START_DIR',
+)
 
 # =============================================================================
 # >> BASE VARIABLES
