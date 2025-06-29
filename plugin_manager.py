@@ -18,7 +18,7 @@ class PluginManager(dict):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.base_path = Path(__file__).parent
+        self.base_path = Path(__file__).parent / ".plugin_manager"
         self.config_path = self.base_path.parent.joinpath("config.ini")
 
     def create_window(self):
@@ -73,7 +73,6 @@ class PluginManager(dict):
             self.window.mainloop()
 
     def on_click(self, option):
-        print(f"You clicked {option}")
         for widget in self.window.winfo_children():
             if widget.cget("text") == "Exit":
                 continue
