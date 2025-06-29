@@ -1,6 +1,9 @@
+# =============================================================================
+# >> IMPORTS
+# =============================================================================
+# Python
 import configparser
 import importlib
-import platform
 import sys
 import subprocess
 from contextlib import suppress
@@ -8,9 +11,9 @@ from pathlib import Path
 import tkinter as tk
 
 
-os_name = platform.system().lower()
-
-
+# =============================================================================
+# >> CLASSES
+# =============================================================================
 class PluginManager(dict):
 
     window = None
@@ -117,15 +120,12 @@ class PluginManager(dict):
 
     def check_config(self):
         if not self.config_path.is_file():
-            base_config_path = self.base_path.joinpath("tools", "config.ini")
-            with base_config_path.open() as open_file:
-                contents = open_file.read()
-            os_config_path = self.base_path.joinpath(os_name, "config.ini")
-            if os_config_path.is_file():
-                with os_config_path.open() as open_file:
-                    contents += open_file.read()
-            with self.config_path.open("w") as open_file:
-                open_file.write(contents)
+            config_path = self.base_path.joinpath("tools", "config.ini")
+            with (
+                config_path.open() as read_file,
+                self.config_path.open('w') as write_file,
+            ):
+                write_file.write(read_file.read())
             return False
 
         config = configparser.ConfigParser()
@@ -135,12 +135,9 @@ class PluginManager(dict):
         return True
 
     def display_update_config_message(self):
-        # window.configure(bg="black")
         label = tk.Label(
             self.window,
             text=f"Please update the configuration at {self.config_path}",
-            # fg="red",
-            # bg="black",
             font=("times", 24, "bold"),
         )
         label.place(relx=0.5, rely=0.5, anchor="center")
