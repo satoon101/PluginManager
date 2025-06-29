@@ -2,13 +2,9 @@
 
 """Links Source.Python's repository to games/servers."""
 
-# ==============================================================================
+# =============================================================================
 # >> IMPORTS
-# ==============================================================================
-# Python
-from contextlib import suppress
-from warnings import warn
-
+# =============================================================================
 # Site-package
 from configobj import ConfigObj
 from path import Path
@@ -19,16 +15,12 @@ from common.constants import (
     START_DIR,
     config,
 )
-from common.functions import (
-    clear_screen,
-    copy_over_file,
-    link_directory,
-    link_file,
-)
+from common.functions import get_link_directory_command, get_link_file_command
+from common.interface import BaseInterface
 
-# ==============================================================================
+# =============================================================================
 # >> GLOBAL VARIABLES
-# ==============================================================================
+# =============================================================================
 _binary = "dll" if PLATFORM == "windows" else "so"
 SOURCE_BINARY = f"source-python.{_binary}"
 CORE_BINARY = f"core.{_binary}"
@@ -44,28 +36,32 @@ source_python_directories = {
     if not x.stem.startswith((".", "_")) and
     x.stem not in ("addons", "src")
 }
-source_python_addons_directories = {
-    x.stem for x in SOURCE_PYTHON_DIR.joinpath(
-        "addons",
-        "source-python",
-    ).dirs() if x.stem != "bin"
-}
 
 
-# ==============================================================================
+# =============================================================================
 # >> CLASSES
-# ==============================================================================
-class SPLinker:
-    def __init__(self, game_name):
-        if game_name not in supported_games:
-            msg = f"{game_name} is not a supported game"
-            raise ValueError(msg)
-        self.game_name = game_name
+# =============================================================================
+class Interface(BaseInterface):
 
-    def link_game(self):
-        print(f"Linking Source.Python to {self.game_name}.\n")
-        path = supported_games[self.game_name]["directory"]
-        branch = supported_games[self.game_name]["branch"]
+    name = "Source.Python Linker"
+
+    def run(self):
+        self.window.tite = self.name
+        self.clear_grid()
+        self.create_grid(data=supported_games)
+        self.add_back_button(self.on_back_to_main)
+
+    def on_click(self, option):
+        self.clear_grid()
+        commands = self.get_all_link_commands(option)
+        self.create_console_output(commands)
+        self.add_back_button(self.run)
+
+    @staticmethod
+    def get_all_link_commands(option):
+        commands = []
+        path = supported_games[option]["directory"]
+        branch = supported_games[option]["branch"]
         for dir_name in source_python_directories:
             directory = path / dir_name
             if not directory.is_dir():
@@ -73,40 +69,31 @@ class SPLinker:
 
             sp_dir = directory / "source-python"
             if sp_dir.is_dir():
-                print(
-                    f"Cannot link ../{dir_name}/source-python/ directory."
-                    f"  Directory already exists.\n",
-                )
                 continue
 
-            link_directory(
-                src=SOURCE_PYTHON_DIR / dir_name / "source-python",
-                dest=sp_dir,
+            commands.append(
+                get_link_directory_command(
+                    src=SOURCE_PYTHON_DIR / dir_name / "source-python",
+                    dest=sp_dir,
+                )
             )
-            print(f"Successfully linked ../{dir_name}/source-python/\n")
 
         server_addons = path / "addons" / "source-python"
-        if not server_addons.is_dir():
-            server_addons.makedirs()
+        server_addons_bin = server_addons / "bin"
+        if not server_addons_bin.is_dir():
+            server_addons_bin.makedirs()
 
-        for dir_name in source_python_addons_directories:
-            directory = server_addons / dir_name
+        for dir_name in SOURCE_PYTHON_ADDONS_DIR.dirs():
+            directory = server_addons / dir_name.stem
             if directory.is_dir():
-                print(
-                    f"Cannot link ../addons/source-python/{dir_name}/ "
-                    f"directory.  Directory already exists.\n",
-                )
                 continue
 
-            link_directory(
-                src=SOURCE_PYTHON_ADDONS_DIR / dir_name,
-                dest=directory,
+            commands.append(
+                get_link_directory_command(
+                    src=dir_name,
+                    dest=directory,
+                )
             )
-            print(f"Successfully linked ../addons/source-python/{dir_name}/\n")
-
-        bin_dir = server_addons / "bin"
-        if not bin_dir.is_dir():
-            SOURCE_PYTHON_ADDONS_DIR.joinpath("bin").copytree(bin_dir)
 
         vdf = path / "addons" / "source-python.vdf"
         if not vdf.is_file():
@@ -116,57 +103,25 @@ class SPLinker:
         if PLATFORM == "windows":
             build_dir = build_dir / "Release"
 
-        if not build_dir.is_dir():
-            warn(
-                f'Build "{branch}" does not exist. Please create the build.',
-            )
-            return
+        for src, dest in (
+            (build_dir / SOURCE_BINARY, path / "addons" / SOURCE_BINARY),
+            (build_dir / CORE_BINARY, server_addons_bin / CORE_BINARY)
+        ):
+            if src.is_file() and not dest.is_file():
+                print(3, src, dest)
+                commands.append(
+                    get_link_file_command(
+                        src=src,
+                        dest=dest,
+                    )
+                )
 
-        copy_over_file(
-            src=build_dir / SOURCE_BINARY,
-            dest=path / "addons" / SOURCE_BINARY,
-        )
-        copy_over_file(
-            src=build_dir / CORE_BINARY,
-            dest=path / "addons" / "source-python" / "bin" / CORE_BINARY,
-        )
+        return commands
 
 
-# ==============================================================================
+# =============================================================================
 # >> HELPER FUNCTIONS
-# ==============================================================================
-def _get_game():
-    """Return a game to do something with."""
-    clear_screen()
-
-    # Are there any games?
-    if not supported_games:
-        print("There are no games to link.")
-        return None
-
-    # Gather the list of games
-    message = "Which game/server would you like to link?\n\n"
-    for number, game in enumerate(supported_games, start=1):
-        message += f"\t({number}) {game}\n"
-
-    # Add ALL to the list
-    message += f"\t({len(supported_games) + 1}) ALL\n\n"
-
-    # Get the game to link to
-    while True:
-        value = input(message).strip()
-        if value in [*supported_games, "ALL"]:
-            return value
-
-        with suppress(ValueError):
-            value = int(value)
-            if value <= len(supported_games):
-                return list(supported_games)[value - 1]
-
-            if value == len(supported_games) + 1:
-                return "ALL"
-
-
+# =============================================================================
 def _get_supported_games():
     games = {}
     server_directories = config["SERVER_DIRECTORIES"]
@@ -190,10 +145,6 @@ def _get_supported_games():
                 if not _game_dir.is_dir():
                     continue
                 if _game in games:
-                    warn(
-                        f"{_game} already assigned to {games[_game]}."
-                        f" New path found: {_game_dir}",
-                    )
                     continue
                 games[_game] = {
                     "directory": _game_dir,
@@ -202,23 +153,3 @@ def _get_supported_games():
     return games
 
 supported_games = _get_supported_games()
-
-
-# ==============================================================================
-# >> MAIN FUNCTION
-# ==============================================================================
-def run():
-    # Get the game to link
-    game_name = _get_game()
-    if game_name is not None:
-        clear_screen()
-        if game_name == "ALL":
-            for game_name in supported_games:
-                SPLinker(game_name).link_game()
-
-        else:
-            SPLinker(game_name).link_game()
-
-
-if __name__ == "__main__":
-    run()
