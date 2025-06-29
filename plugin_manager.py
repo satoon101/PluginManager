@@ -56,6 +56,7 @@ class PluginManager(dict):
             call_mainloop = True
             self.create_window()
 
+        self.window.title("Plugin Manager")
         if not self:
             self.populate_dictionary()
 

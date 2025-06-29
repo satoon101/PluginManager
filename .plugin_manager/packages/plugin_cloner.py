@@ -5,7 +5,6 @@
 import re
 
 # Site-package
-from git import Repo
 import requests
 
 # Package
@@ -52,12 +51,15 @@ class Interface(BaseInterface):
     name = "Plugin Cloner"
     repos = {}
 
-    def run(self):
-        self.window.tite = self.name
+    def run(self, plugin_name=None):
+        self.window.title(self.name)
         self.clear_grid()
         if not self.repos:
             self.populate_repos_from_user()
             self.populate_repos_from_organizations()
+
+        if plugin_name and (START_DIR / plugin_name).is_dir():
+            del self.repos[plugin_name]
 
         self.create_grid(data=self.repos)
         self.add_back_button(self.on_back_to_main)
@@ -120,4 +122,10 @@ class Interface(BaseInterface):
             self.identify_repos(url=orgs_url.format(org=org))
 
     def on_click(self, option):
-        Repo.clone_from(self.repos[option], START_DIR / option)
+        self.clear_grid()
+        console = self.get_console()
+        self.execute_console_commands(
+            console=console,
+            commands=[f"git clone {self.repos[option]} {START_DIR / option}"]
+        )
+        self.add_back_button(lambda o=option: self.run(plugin_name=o))
