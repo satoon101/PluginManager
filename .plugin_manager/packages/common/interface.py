@@ -48,8 +48,7 @@ class BaseInterface:
         self.clear_grid()
         self.main_run()
 
-    def create_console_output(self, commands):
-
+    def create_console_output(self, commands, suppress_error_msg=False):
         process = subprocess.Popen(
             " && ".join(commands),
             shell=True,
@@ -66,7 +65,8 @@ class BaseInterface:
         output_text.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
         output_text.insert(tk.END, stdout)
         if stderr:
-            output_text.insert(tk.END, f"\nErrors:\n{stderr}")
+            message = stderr if suppress_error_msg else f"Errors:\n{stderr}"
+            output_text.insert(tk.END, message)
 
     @staticmethod
     def on_click(option):
