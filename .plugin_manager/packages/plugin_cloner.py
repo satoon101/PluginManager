@@ -1,6 +1,6 @@
-# ==============================================================================
+# =============================================================================
 # >> IMPORTS
-# ==============================================================================
+# =============================================================================
 # Python
 import re
 
@@ -14,11 +14,11 @@ from common.constants import (
     START_DIR,
     config,
 )
-from common.functions import clear_screen
+from common.interface import BaseInterface
 
-# ==============================================================================
+# =============================================================================
 # >> GLOBAL VARIABLES
-# ==============================================================================
+# =============================================================================
 repo_url = (
     "https://api.github.com/users/{author}/repos"
     "?per_page={per_page}&page={page}"
@@ -44,16 +44,25 @@ EXCLUDE_TOPICS = set(EXCLUDE_TOPICS)
 CONVERSIONS = config["CONVERSIONS"]
 
 
-# ==============================================================================
+# =============================================================================
 # >> CLASSES
-# ==============================================================================
-class RepoCloner(dict):
-    def __init__(self):
-        super().__init__()
-        self.populate_list_from_user()
-        self.populate_list_from_organizations()
+# =============================================================================
+class Interface(BaseInterface):
 
-    def populate_plugin_list(self, url):
+    name = "Plugin Cloner"
+    repos = {}
+
+    def run(self):
+        self.window.tite = self.name
+        self.clear_grid()
+        if not self.repos:
+            self.populate_repos_from_user()
+            self.populate_repos_from_organizations()
+
+        self.create_grid(data=self.repos)
+        self.add_back_button(self.on_back_to_main)
+
+    def identify_repos(self, url):
         page = 0
         while True:
             page += 1
@@ -89,54 +98,26 @@ class RepoCloner(dict):
                 for old, new in CONVERSIONS.items():
                     name = name.replace(old, new)
 
-                name = "_".join(filter(None, re.split(r"(?=[A-Z])", name))).lower()
+                name = "_".join(
+                    filter(
+                        None,
+                        re.split(r"(?=[A-Z])", name)
+                    )
+                ).lower()
                 if name in PLUGIN_LIST:
                     continue
 
-                self[name] = item["ssh_url"]
+                self.repos[name] = item["ssh_url"]
 
             if len(items) < per_page:
                 break
 
-    def populate_list_from_user(self):
-        self.populate_plugin_list(url=repo_url)
+    def populate_repos_from_user(self):
+        self.identify_repos(url=repo_url)
 
-    def populate_list_from_organizations(self):
+    def populate_repos_from_organizations(self):
         for org in ORGANIZATIONS:
-            self.populate_plugin_list(url=orgs_url.format(org=org))
+            self.identify_repos(url=orgs_url.format(org=org))
 
-    def get_choice(self):
-        clear_screen()
-        message = "Choose a plugin to clone:\n\n"
-        for index, key in enumerate(sorted(self), start=1):
-            message += f"{index}. {key}\n"
-
-        value = None
-        while True:
-            try:
-                value = input(message)
-                choice_index = int(value)
-                assert 0 < choice_index <= len(self)
-            except (ValueError, AssertionError):
-                print(f"Invalid choice '{value}'. Please try again.")
-            else:
-                return sorted(self)[choice_index - 1]
-
-    def clone_plugin(self, plugin):
-        Repo.clone_from(self[plugin], START_DIR / plugin)
-
-
-# ==============================================================================
-# >> MAIN FUNCTION
-# ==============================================================================
-def run():
-    cloner = RepoCloner()
-    if cloner:
-        plugin = cloner.get_choice()
-        cloner.clone_plugin(plugin)
-    else:
-        print("No plugins found.")
-
-
-if __name__ == "__main__":
-    run()
+    def on_click(self, option):
+        Repo.clone_from(self.repos[option], START_DIR / option)
