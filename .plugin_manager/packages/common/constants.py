@@ -2,11 +2,10 @@
 
 """Provides commonly used constants."""
 
-# ==============================================================================
+# =============================================================================
 # >> IMPORTS
-# ==============================================================================
+# =============================================================================
 # Python
-import os
 import sys
 from collections import ChainMap
 from platform import system
@@ -15,14 +14,28 @@ from platform import system
 from configobj import ConfigObj
 from path import Path
 
+# =============================================================================
+# >> ALL
+# =============================================================================
+__all__ = (
+    'config',
+    'CONDITIONAL_PYTHON_FILES_DIR',
+    'LINK_BASE_DIR',
+    'PLATFORM',
+    'PLUGIN_LIST',
+    'PLUGIN_PRIMARY_FILES_DIR',
+    'PLUGIN_REPO_ROOT_FILES_DIR',
+    'RELEASE_DIR',
+    'START_DIR',
+)
 
-# ==============================================================================
+# =============================================================================
 # >> BASE VARIABLES
-# ==============================================================================
+# =============================================================================
 PLATFORM = system().lower()
 
 # Store the Path based configuration values
-START_DIR = Path(os.environ["STARTDIR"])
+START_DIR = Path(__file__).parent.parent.parent.parent
 config = dict(ChainMap(*ConfigObj(START_DIR / 'config.ini').values()))
 
 _command = Path(sys.argv[0]).stem

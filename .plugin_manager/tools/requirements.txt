@@ -1,7 +1,7 @@
 configobj==5.0.9
-jinja2==3.1.6
+Jinja2==3.1.6
 path==17.1.0
 requests==2.32.4
 ruff==0.11.12
 GitPython==3.1.44
-PyGitHub==2.6.1
+PyGithub==2.6.1
