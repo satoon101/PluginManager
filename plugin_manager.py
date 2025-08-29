@@ -63,7 +63,7 @@ class PluginManager(dict):
         if not self:
             self.populate_dictionary()
 
-        for i, (key, value) in enumerate(self.items()):
+        for i, (key, value) in enumerate(sorted(self.items())):
             button = tk.Button(
                 self.window,
                 text=value.name,
@@ -86,7 +86,7 @@ class PluginManager(dict):
 
     def install_requirements(self):
         result = subprocess.run(
-            [sys.executable, "-m", "pip", "freeze"],
+            args=[sys.executable, "-m", "pip", "freeze"],
             capture_output=True,
             text=True,
             check=True,
